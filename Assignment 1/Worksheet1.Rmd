@@ -1,0 +1,162 @@
+---
+title: "Worksheet1"
+author: "stat414"
+date: "2024-09-14"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("readxl")
+#install.packages("Rcmdr")
+```
+
+```{r}
+#===================== QUESTION #1: =====================#
+library(readxl)
+#library(Rcmdr)
+
+data <- read_excel("Profit.xlsx") #import excel data
+
+dataframe <- data.frame(data) #convert excel sheet to dataframe
+dataframe
+
+profits <- as.numeric(dataframe[,2]) #extract column 2 as numeric values
+max(profits)
+min(profits)
+profits
+
+#Histogram of column 2 profits
+hist(profits,probability=TRUE,breaks= c(100,500,600,700,800,900,1000,
+                       1100,1200,1300,1400,1500,1600,1700,1800)) 
+
+#Superimpose normal line onto histogram
+lines(density(profits), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(profits), sd=sd(profits)), lwd=2, col="blue", add=TRUE)
+
+#Plot population vs profits in a scatterplot
+population <- as.numeric(dataframe[,3]) #extract column 3 as numeric
+population
+plot(population, profits, main="scatter plot of profit vs population")
+
+#Summary of data
+SUM <- summary(dataframe)
+SUM
+
+#T-test
+T1 <- t.test(profits, alternative="greater", mu=900)
+T1
+
+#Correlation of profits and population
+COR = cor(profits, population)
+COR
+
+#Simple linear regression
+LM <- lm(profits~population)
+LM
+LM$effects 
+  # if multivariables: LM <- lm(y~x1+x2)
+
+#Comparing 2 populations using a boxplot
+COMMIS <- as.numeric(dataframe[,6]) #extract column 6
+boxplot(profits~COMMIS, xlab="COMMIS",ylab="PROFIT", boxwex=0.25,
+        main="Box Plot of Profit by COMMIS", col="lightblue")
+
+#2 sample t-test
+T2 = t.test(profits~COMMIS,alternative=c("less"))
+T2
+```
+
+```{r}
+#===================== QUESTION #2: =====================#
+library(readxl)
+
+data <- read_excel("Salary.xlsx") #import excel data
+dataframe <- data.frame(data)
+
+#a - Five number summary
+salary <- as.numeric(dataframe[,6]) #extract column 6 data, salaries
+salary
+
+cat("5 number summary = Min, Q1 Median, Median, Q2 Median, Max")
+summary(dataframe)
+boxplot(salary,main="Salary", xlab=
+        "Salary in dollars", horizontal=TRUE)
+
+#b - Compute the percentages of data points in the intervals mean ± SD,mean ± 2SD.
+#What are these percentages expected to be and how close are they
+mean <- mean(salary)
+sd <- sd(salary)
+sd2 <- sd*2
+
+interval1 <- (salary > mean-sd) & (salary < mean+sd)
+total <- sum(interval1 == TRUE)
+total / length(salary)
+
+interval2 <- (salary > mean-sd2) & (salary < mean+sd2)
+total <- sum(interval2 == TRUE)
+total / length(salary)
+
+cat("The emperical rule states that in a Gaussian(normal) distribution, approximately 
+68% of data falls within 1 standard deviation of the mean, and 95% of the data falls within 2
+standard deviations of the mean. We express this using the CLT and generating random numbers
+using rnorm")
+n <- 100000
+x <- rnorm(n)
+rmean <- mean(x)
+rsd <- sd(x)
+rsd2 <- 2*rsd
+
+int1 <- (x > rmean-rsd) & (x < rmean+rsd) #mean +- sd
+sum(int1 == TRUE) / 100000 #calc percentage
+int2 <- (x > rmean-rsd2) & (x < rmean+rsd2) #mean +- 2*sd
+sum(int2 == TRUE) / 100000 #calc percentage
+
+cat("As seen from these results, since n is extremely large, we can conclude by CLT that ~68.1% 
+    of data falls between 1 SD of the mean, and ~95.5% of data falls between 2 SDs of the mean.
+    Therefore our calculated results from the salary dataset were very close to the expected
+    percetanges of normal distribution.")
+
+#c - Repeat part b for a variety of transformations of the salary data. What transformation
+# of the data provides a good fit of the data to a Gaussian assumption on the data?
+
+#Take log of all salary datapoints
+logsalary <- log(salary)
+#Log interval 1
+log1 <- (logsalary > mean(logsalary)-sd(logsalary)) & (logsalary < mean(logsalary)+sd(logsalary))
+sum(log1 == TRUE) / length(logsalary)
+#Log interval 2
+log2 <- (logsalary > mean(logsalary)-(2*sd(logsalary))) & (logsalary < mean(logsalary)+(2*sd(logsalary)))
+sum(log2 == TRUE) / length(logsalary)
+
+#Take square root of all salary datapoints
+rootsalary <- sqrt(salary)
+#Root interval 1
+root1 <- (rootsalary > mean(rootsalary)-sd(rootsalary)) & (rootsalary < mean(rootsalary)+sd(rootsalary))
+sum(root1 == TRUE) / length(rootsalary)
+#Root interval 2
+root2 <- (rootsalary > mean(rootsalary)-(2*sd(rootsalary))) & (rootsalary < mean(rootsalary)+
+(2*sd(rootsalary)))
+sum(root2 == TRUE) / length(rootsalary)
+
+#Z standardize every datapoint in the vector such that mean=0, SD=1
+stdsalary <- (salary - mean(salary))/sd(salary)
+stdmean <- mean(stdsalary)
+stdsd <- sd(stdsalary)
+stdsd2 <- 2*stdsd
+#Standardize interval 1
+std1 <- (stdsalary > stdmean-stdsd) & (stdsalary < stdmean+stdsd)
+sum(std1 == TRUE) / length(stdsalary)
+#Standardize interval 2
+std2 <- (stdsalary > stdmean-stdsd2) & (stdsalary < stdmean+stdsd2)
+sum(std2 == TRUE) / length(stdsalary)
+
+
+cat("As seen from the 3 transformations and their calculated percentages,
+    the best transformation is to Z standardize the datapoints. The standardization produced
+    63.4% of datapoints falling within 1 SD from the mean, and 96.2% of datapoints falling
+    within 2 SDs from the mean, the closest overall to the expected 68.1% and 95.5%
+    for a Gaussian distribution. The log and root transformations had 61.5% & 98.1%, and 
+    63.5% & 98.1%, respectively.")
+
+```

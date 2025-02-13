@@ -1,0 +1,132 @@
+---
+title: "Assessment02"
+author: "STAT414"
+date: "2024-12-14"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(EnvStats)
+# Let X1, ..., Xn denote a random sample from a normal population distribution with an
+# unknown value of sig. Assume that the population is well-approximated by a normal
+# distribution with mean mu and variance sig^2
+#A sample of size (=25) yielded mean 102 (102=Xbar) and standard deviation of 7 (s=7).
+
+# (a) Test the null H0 : mu = 100 vs Ha : mu > 100 at level alpha = 0.05 and state your
+# conclusions based on the above sample. Please clearly show all seven steps of the
+# hypothesis testing procedure.
+
+#1 - Parameter of interest is mu
+n=25
+#2-3 -  H0: mu = 100
+#       HA: mu > 100
+#alpha = .05, use t-test
+alpha = .05
+
+#4 - test statistic = xbar-mu / s/sqrt(n)
+tvalue <- (102-100) / (7/sqrt(25))
+
+#5-6 - pvalue/rejection region
+pvalue <- pt(tvalue, n-1, lower.tail = FALSE)
+rejection <- qt(1-alpha, n-1)
+rejection_mean <- 100 + rejection*(7/sqrt(25))
+
+#7 - Conclusion
+pvalue
+rejection_mean
+
+cat("We reject H0 if the calculated pvalue is less than alpha or the sample mean
+    Xbar is less than the rejection mean. The pvalue is", pvalue, "which is greater
+    than alpha=.05, therefore we fail to reject the null hypothesis and conclude
+    that the there is not enough evidence to support that the parameter of interest
+    mu is greater than 100, statistical evidence shows support to the idea that mu
+    is equal to 100.")
+
+# (b) Use tTestPower function of EnvStats, and compute the power curve of the above
+# test procedure assuming that the standard deviation of the population (sig is 8.
+
+# Plot the power curve of this test procedure. Suppose the data had yielded a
+# sample mean Xbar = 103, what would the power curve look like?
+
+tvalue <- (103-100) / (8/sqrt(25))
+rejection <- qt(1-alpha, n-1)
+rejection_mean <- 100 + rejection*(8/sqrt(25))
+rejection_mean
+
+mu <- seq(80,120,.5)
+plot(mu,1 - pnorm(rejection_mean, mu, sd = 8/sqrt(25)), type="l",
+     ylab="Power", xlab="mu, 80 to 120", main="Power curve", col="red")
+lines(mu,1 - pnorm(103, mu, sd = 8/sqrt(25)), type="l", col="blue")
+legend("topleft", legend = ("Rejection mean = red
+Xbar=103 = blue"))
+
+# (c) Plot the power curve of this test for values of mu ranging from 90 to 110 for sample
+# sizes n = 10, 20, 30, 40, 50. Plot all these curves on the same plot. Add a legend
+# to your plot.
+mu <- seq(90,110,.5)
+plot(mu,1 - pnorm(rejection_mean, mu, sd = 8/sqrt(10)), type="l",
+     ylab="Power", xlab="mu, 90 to 110", main="Power curve", col="red")
+lines(mu,1 - pnorm(rejection_mean, mu, sd = 8/sqrt(20)), col="purple")
+lines(mu,1 - pnorm(rejection_mean, mu, sd = 8/sqrt(30)), col="blue")
+lines(mu,1 - pnorm(rejection_mean, mu, sd = 8/sqrt(40)), col="black")
+lines(mu,1 - pnorm(rejection_mean, mu, sd = 8/sqrt(50)), col="green")
+legend("topleft", legend = ("n=10 = red
+n=20 = purple
+n=30 = blue
+n=40 = black
+n=50 = green"))
+
+# 2. Suppose the investigator had mistakenly thought that the population is Normal. In
+# reality it is a Gamma, with shape alpha and scale beta.
+
+# (a) Use simulation and plot the sampling distribution of Xbar (for n = 10) when the
+# null hypothesis is true and the population standard deviation (sig) is 8.
+
+#null hypothesis is true implies mu = 100, sig given as 8
+n = 10
+mu = 100
+sig = 8
+
+#shape = k * theta = mu * sig
+alpha <- mu * sig 
+
+#scale = k / sqrt(theta) = mu / sqrt(sig)
+beta <- mu / sqrt(sig)
+
+set.seed(1)
+Xbars <- c()
+
+#10000 simulations of xbar(mean) of rgamma for n=10, for shape=alpha, scale=beta
+for(i in 1:10000){
+  simu <- rgamma(10,alpha, beta)
+  Xbars[i] <- mean(simu)
+}
+
+hist(Xbars, probability="TRUE", main = "simulation and plot the sampling distribution of Xbar (for n = 10)")
+lines(density(Xbars), add=TRUE, col="red")
+#curve(dgamma(x, shape=(mean(Xbars)*sd(Xbars)), scale=(mean(Xbars)/sd(Xbars))), add=TRUE, col="blue")
+
+# (b) Suppose the mu = 102 and standard deviation (sig) is 8. Compute the true power of
+# the test and compare it to the power under the [wrong] assumption of Normality
+# as in #1.
+
+xbar <- mean(Xbars)
+xbar
+mu = 102
+sig = 8
+
+tvalue <- (xbar-mu) / (sig/sqrt(n))
+rejection <- qt(1-.05, n-1)
+rejection_mean <- mu + rejection*(sig/sqrt(n))
+rejection_mean
+
+#True power = 1 - beta = 1 - P(type II error)
+power <- 1 - pnorm(rejection_mean, mean=mu, sd = sig/sqrt(n))
+cat("True power is:", power)
+
+```
+

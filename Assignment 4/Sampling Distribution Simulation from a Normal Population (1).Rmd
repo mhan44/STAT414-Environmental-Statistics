@@ -1,0 +1,71 @@
+---
+title: 'Module04: Sampling Distributions'
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+date: "2023-06-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Create a function to compute the statistic. Here we are using the example 
+$T= \frac{X_1+X_2}{2}$. You can change this part of the program to any other
+function as you need. 
+
+```{r}
+fun <- function(x) {
+mean(x)
+}
+```
+
+
+Generating a large number of samples, each of the sample size as specified. 
+The default simulation size $(M)$ used here is 1000, and the default 
+sample size $(n)$ used here is 2. 
+
+The population is assumed to a Normal distribution with $\mu=20$ and $\sigma=6$. 
+We will consider a sample size of $n=2$. 
+That is, 
+
+sampsize <- 2
+
+
+```{r}
+simsize <- 10000
+sampsize <- 4
+set.seed(2)
+Samples <- as.data.frame(matrix(rnorm(simsize*sampsize, mean=10,sd=2),ncol=sampsize))
+rownames(Samples) <- paste("sample", 1:simsize, sep="")
+colnames(Samples) <- paste("obs", 1:sampsize, sep="")
+#Samples
+```
+
+
+Compute the statistic for each of the generated simsize samples. We are using a useful
+R function called apply, which can implement the same function for each row. 
+This is a handy tool when we have to do the same operation on each row for a very large
+matrix of data. 
+
+```{r}
+results <- apply(Samples,FUN=fun,1)
+Samples
+#results
+```
+
+
+Now, we plot the histogram of all simulated values of the test statistic $T$, and compare it to 
+a Normal distribution, with $\mu$ and $\sigma$ approximated by the average and standad deviation
+of all simulated values of T}$. 
+
+
+```{r}
+hist(results,prob=T)
+curve(dnorm(x,mean=mean(results),sd=sd(results)), from = min(results), to = max(results),add=T,col="red") 
+#curve(dnorm(x,mean=mean(results),sd=sd(results)), from = 4.5, to = 12.5,add=T,col="red") 
+```
+
+

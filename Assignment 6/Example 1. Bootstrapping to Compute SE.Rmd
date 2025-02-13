@@ -1,0 +1,112 @@
+---
+title: "Bootstrapping to Compute SE of a statistic"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+date: "2023-06-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(boot)
+library(pastecs)
+library(EnvStats)
+attach(EPA.94b.tccb.df)
+```
+
+## Direct way using the code we already are familiar with from Module04
+
+Create a function to compute the statistic. Here we are using the example 
+$T= \frac{X_1+X_2+\cdots+X_n}{n}$. 
+You can change this part of the program to any other function as you need. 
+
+```{r}
+fun <- function(x) {
+mean(x)
+}
+```
+
+Below we are picking up the observations in the data set EPA.94b.tccb.df
+corresponding to the Reference area. It is then followed by the usual 
+preliminary analysis of the data. 
+
+```{r}
+TcCB.Ref <- EPA.94b.tccb.df$TcCB[EPA.94b.tccb.df$Area=="Reference"]
+stat.desc(TcCB.Ref,norm=T)
+hist(TcCB.Ref,prob=T)
+curve(dnorm(x,mean=mean(TcCB.Ref),sd=sqrt(var(TcCB.Ref))),
+      from=min(TcCB.Ref),to=max(TcCB.Ref), add=T)
+curve(dlnorm(x,meanlog=mean(log(TcCB.Ref)),sdlog=sd(log(TcCB.Ref))), 
+      from=min(TcCB.Ref),to=max(TcCB.Ref), add=T,lty="dashed",col="red")
+```
+
+
+The following code demonstrates the bootstrapping method of 
+estimating the standard error of the statistic computed by the 
+function "fun". In this example, we are using 500 bootstrap replications. 
+
+```{r}
+bootsize <- 500
+sampsize <- length(TcCB.Ref) 
+set.seed(2)
+Pop <- TcCB.Ref
+Samples <- as.data.frame(matrix(sample(Pop, bootsize*sampsize, replace=TRUE),ncol=sampsize))
+rownames(Samples) <- paste("BS.rep", 1:bootsize, sep="")
+colnames(Samples) <- paste("obs", 1:sampsize, sep="")
+results <- apply(Samples,FUN=fun,1)
+#Samples
+```
+
+
+Now, we plot the histogram of all the bootstrapped values of the statistic $T$, 
+and compare it to the Normal distribution, with $\mu=\bar{X}$ and $\frac{s}{\sqrt{n}}$. 
+
+
+```{r}
+stat.desc(results)
+hist(results,prob=T,main="",xlab="xbar")
+curve(dnorm(x,mean=mean(TcCB.Ref),sd=sd(TcCB.Ref)/sqrt(length(TcCB.Ref))), 
+      from = min(TcCB.Ref), to = max(TcCB.Ref),add=T,col="red") 
+title(main="Bootstrapped Sampling Distribution")
+```
+
+## Alternative way using the package boot
+
+
+```{r}
+fun <- function(x, i) {
+mean(x[i])
+}
+```
+
+
+```{r}
+results <- boot(TcCB.Ref,fun,500)
+```
+
+Now, we plot the histogram of all the bootstrapped values of the statistic $T$, 
+and compare it to the Normal distribution, with $\mu=\bar{X}$ and $\frac{s}{\sqrt{n}}$. 
+
+
+```{r}
+stat.desc(results$t)
+hist(results$t,prob=T,main="",xlab="xbar")
+curve(dnorm(x,mean=mean(TcCB.Ref),sd=sd(TcCB.Ref)/sqrt(length(TcCB.Ref))), 
+      from = min(TcCB.Ref), to = max(TcCB.Ref),add=T,col="red") 
+title(main="Bootstrapped Sampling Distribution")
+```
+
+If all we want is the bootstapping based estimate of the standard error of 
+the statistic (given by the function fun), it can now be done with single
+call to the function boot() of a package called boot.
+```{r}
+boot(TcCB.Ref,fun,500)
+```
+
+
+```{r}
+detach(EPA.94b.tccb.df)
+```
+
+

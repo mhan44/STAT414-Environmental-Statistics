@@ -1,0 +1,91 @@
+---
+title: "Untitled"
+output:
+  html_document:
+    df_print: paged
+date: "2023-06-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Create a function to compute the statistic. Here we are using the example 
+$T= \frac{X_1+X_2}{2}$. You can change this part of the program to any other
+function as you need. 
+
+```{r}
+fun <- function(x) {
+mean(x)
+}
+```
+
+
+Generating a large number of samples, each of the sample size as specified. 
+The default simulation size $(M)$ used here is 1000, and the default 
+sample size $(n)$ used here is 2. 
+
+The Pop vector below should contain the entire list of population values. Repeated 
+values (that is, two differnet population units having the same meausurements) should be 
+all be listed. We are using the example on pages 5-7 of the Module 04 slides. Hence:
+
+Pop <- c(12,7,5)  
+sampsize <- 2
+
+
+```{r}
+simsize <- 1000
+sampsize <- 2
+set.seed(2)
+Pop <- c(12,7,5)
+Samples <- as.data.frame(matrix(sample(Pop, simsize*sampsize, replace=TRUE),ncol=sampsize))
+rownames(Samples) <- paste("sample", 1:simsize, sep="")
+colnames(Samples) <- paste("obs", 1:sampsize, sep="")
+#Samples
+```
+
+
+Compute the statistic for each of the generated simsize samples. We are using a useful
+R function called apply, which can implement the same function for each row. 
+This is a handy tool when we have to do the same operation on each row for a very large
+matrix of data. 
+
+```{r}
+results <- apply(Samples,FUN=fun,1)
+#results
+```
+
+
+Now, we plot the histogram of all simulated values of the test statistic $T$, and compare it to 
+a Normal distribution, with $\mu$ and $\sigma$ approximated by the average and standad deviation
+of all simulated values of T}$. 
+
+
+```{r}
+hist(results,prob=T,breaks=4.5:12.5,main="",xlab="xbar")
+#curve(dnorm(x,mean=mean(results),sd=sd(results)), from = min(results), to = max(results),add=T,col="red") 
+curve(dnorm(x,mean=mean(results),sd=sd(results)), from = 4.5, to = 12.5,add=T,col="red") 
+title(main="Simulated Sampling Distribution")
+```
+
+
+Let us now compare this to the exact computation. Recall, from the M04 slides, the sampling distribution of T is given by
+
+\begin{center}
+\begin{tabular}{|c|r|r|r|r|r|r|}
+\hline
+t & 5 & 6 & 7 & 8.5 & 9.5 & 12 \\
+\hline
+$P(T=t)$ & $\frac{1}{9}$ & $\frac{2}{9}$ & $\frac{1}{9}$ & $\frac{2}{9}$ & $\frac{2}{9}$ & $\frac{1}{9} $ \\ 
+\hline    
+\end{tabular}    
+\end{center}
+
+```{r}
+xbar <- c(5,6,6,7,8.5,8.5,9.5,9.5,12)
+#barplot(table(xbar))
+hist(xbar,prob=T,breaks=4.5:12.5,ylim=c(0,0.25),main="")
+title(main="Exact Sampling Distribution")
+```
+
+

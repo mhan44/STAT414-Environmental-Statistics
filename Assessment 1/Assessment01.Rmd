@@ -1,0 +1,109 @@
+---
+title: "Assessment01"
+author: "STAT414"
+date: "2024-12-08"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(EnvStats)
+# 1. Arsenic concentrations (ppb) collected quarterly at two groundwater monitoring wells.
+# These data are stored in the data frame EPA.92c.arsenic3.df.
+data <- EPA.92c.arsenic3.df
+
+background <- data[data$Well.type=="Background",]
+compliance <- data[data$Well.type=="Compliance",]
+
+background
+compliance
+
+# (a) For each well, plot the observations by year. Do you see any major differences
+# between years?
+
+hist(as.numeric(background$Year), xlab="Year", 
+     ylab="Background observations", ylim=c(0,5))
+hist(as.numeric(compliance$Year), xlab="Year", 
+     ylab="Compliance observations", ylim=c(0,5))
+
+plot(as.numeric(background$Year), background$Arsenic)
+plot(as.numeric(compliance$Year), compliance$Arsenic)
+
+cat("The background well data was collected years 1-3, and the compliance well
+    was collected years 4-5. All data collected quarterly each year. No major
+    differences except that the background well has 1 extra year of quarterly data
+    collection, and the wells were not tested at the same time for any given year.")
+
+# (b) Compute summary statistics for each well (combine years).
+summary(background)
+summary(compliance)
+
+# (c) Compare the observed distribution of arsenic at each well. Use whatever types
+# of plots you wish. Does the compliance well appear to show any evidence of
+# contamination? Why or why not?
+
+hist(background$Arsenic, probability="TRUE",main="Background arsenic")
+lines(density(background$Arsenic), add=TRUE, col="red")
+#superimpose normal curve
+curve(dnorm(x,mean=mean(background$Arsenic), sd=sd(background$Arsenic)), add=TRUE, col="blue")
+
+hist(compliance$Arsenic, probability="TRUE",main="Compliance arsenic")
+lines(density(compliance$Arsenic), add=TRUE, col="red")
+#superimpose normal curve
+curve(dnorm(x,mean=mean(compliance$Arsenic), sd=sd(compliance$Arsenic)), add=TRUE, col="blue")
+
+cat("The compliance well does show evidence of aresenic contamination because its
+    histogram distribution is slightly left-skewed, showing that it commonly has 
+    high ppb concentration of arsenic.")
+
+# 2. Consider only the data from the Background wells for this part.
+
+
+# (a) Does it appear that the background well data may be modeled as coming from a
+# normal distribution? Support your conclusions with plots and tests of normality
+# statistics.
+
+# qqplot(background$Arsenic)
+# qqline(background$Arsenic)
+
+cat("From the histogram we see that the shape of the distribution and its density
+    line somehawt resembles the shape of the superimposed normal curve, therefore
+    conclusions cannot be drawn from the distribution alone, there are noticable
+    differences and errors in the shape while still remaining similar.")
+
+kurt <- kurtosis(background$Arsenic)
+skew <- skewness(background$Arsenic)
+
+cat("From the kurtosis and skewness values, we know that for a normal distribution 
+    their values should be 0 or close to 0. The value of skewness for the arsenic
+    concentration for the background well is", skew, "and the kurtosis is", kurt,
+    "
+    neither of which are 0 or close to 0. Therefore we can say that from these values
+    and the histogram distribution that the background well data is most likely not
+    modeled from a normal distribution.")
+
+# (b) Find the value of lambda corresponding Box-Cox transformation of the data to normality. 
+#Plot a histogram of the transformed data and overlay the appropriate Normal curve to 
+#illustrate the quality of fit of this model. Repeat the above  exercise with 
+#the original (non-transformed) data and illustrate how the transformation improves 
+#the normality fit.
+  box <- boxcox(background$Arsenic, lambda=c(-2,-1.5,-1,-.5,0,.5,1,1.5,2), plot="TRUE")
+  plot(box)
+  cat("Choose lambda = .5 since the PPCC value is maxmimized at lambda=.5")
+  
+  new_data <- background$Arsenic ^ .5
+  hist(new_data, probability="TRUE",main="Background lambda=.5 arsenic")
+  lines(density(new_data), add=TRUE, col="red")
+  #superimpose normal curve
+  curve(dnorm(x,mean=mean(new_data), sd=sd(new_data)), add=TRUE, col="blue")
+  
+  cat("We can clearly see from the transformed data distribution that is matches
+      the expected normal distribution, and that it is a much better fit compared
+      to the original histogram distribution as calculated previously. The transformation
+      improves the normality fit by making the density line similar in shape and structure
+      to the superimposed normal curve.")
+
+```

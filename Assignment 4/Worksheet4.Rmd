@@ -1,0 +1,211 @@
+---
+title: "Worksheet4"
+author: "STAT414"
+date: "2024-10-05"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+# #1 - In this first problem, we are drawing samples from an infinite population which is assumed
+# to adequately modeled by a Normal distribution with mu = 10 and sig = 2. Objective is to
+# study the sampling distribution of the widely used statistics mean(X^), median(X^), minimum
+# (Min) and maximum (Max) of the observed sample.
+
+mu = 10
+sig = 2
+
+# (a) Generate 10,000 random samples, each of size 16 from a normal population with mu=10,
+# and sigma=2, and compute min, median, maximum, and mean from each sample. Store
+# these results in a dataframe (10,000 rows and four columns appropriately labeled).
+sample_count <- 10000
+sample_size <- 16
+
+#Create dataframe from matrix with 4 columns and 10000 entries(rows)
+samplesdf <- as.data.frame(matrix(ncol=4, nrow=sample_count))
+colnames(samplesdf) <- c("min", "median", "max", "mean") #name columns
+
+#Generate 10000 entries into the dataframe, of size 16 random normal samples
+#and calculate for each sample, min median max mean
+set.seed(1)
+for(i in 1:sample_count){
+  sample <- rnorm(sample_size, mean=mu, sd=sig)
+  samplesdf[i,] = c(min(sample), median(sample), max(sample), mean(sample)) 
+}
+#samplesdf
+glimpse(samplesdf)
+
+# (b) Summarize the sampling distributions and plot histograms.
+summary(samplesdf) #summarize the sampling distributions for each column (statistics)
+
+#Histogram of min, curve and superimposed normal curve
+hist(samplesdf$min, probability=TRUE, main = "Histogram of minimum, n=16", xlab="Min")
+lines(density(samplesdf$min), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(samplesdf$min), sd=sd(samplesdf$min)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of median, curve and superimposed normal curve
+hist(samplesdf$median, probability=TRUE, ylim = c(0,.7), main = "Histogram of median, n=16",xlab="Median")
+lines(density(samplesdf$median), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(samplesdf$median), sd=sd(samplesdf$median)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of max, curve and superimposed normal curve
+hist(samplesdf$max, probability=TRUE, main = "Histogram of max, n=16", xlab="Max")
+lines(density(samplesdf$max), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(samplesdf$max), sd=sd(samplesdf$max)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of mean, curve and superimposed normal curve
+hist(samplesdf$mean, probability=TRUE, main = "Histogram of mean, n=16", xlab="Mean")
+lines(density(samplesdf$mean), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(samplesdf$mean), sd=sd(samplesdf$mean)), lwd=2, col="blue", add=TRUE)
+
+# (c) Compare the summary statistics and comment on the shapes of the histogram
+cat("The summary statistics were already calculated in (b), refer to 1-b.
+    The shapes of the mean and median histograms are very close to normal, as seen 
+    from the red lines which are the actual density lines of the histograms, and 
+    the blue lines which  are the superimposed normal lines from the dataframe. 
+    The histograms of max and min, are not perfectly curved and are a bit skewed, 
+    but still approximately normal.")
+# (d) Repeat (a)-(c) for a larger sample size.
+sample_size <- 1000
+  
+samplesdf2 <- as.data.frame(matrix(ncol=4, nrow=sample_count))
+colnames(samplesdf2) <- c("min", "median", "max", "mean") #name columns
+  
+for(i in 1:sample_count){
+  sample <- rnorm(sample_size, mean=mu, sd=sig)
+  samplesdf2[i,] = c(min(sample), median(sample), max(sample), mean(sample)) 
+}
+#Histogram of min, curve and superimposed normal curve
+hist(samplesdf2$min, probability=TRUE, main = "Histogram of minimum, n=1000", xlab="Min")
+lines(density(samplesdf2$min), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(samplesdf2$min), sd=sd(samplesdf2$min)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of median, curve and superimposed normal curve
+hist(samplesdf2$median, probability=TRUE, ylim = c(0,5), 
+     main = "Histogram of median,n=1000",xlab="Median")
+lines(density(samplesdf2$median), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(samplesdf2$median), sd=sd(samplesdf2$median)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of max, curve and superimposed normal curve
+hist(samplesdf2$max, probability=TRUE, main = "Histogram of max, n=1000", xlab="Max")
+lines(density(samplesdf2$max), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(samplesdf2$max), sd=sd(samplesdf2$max)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of mean, curve and superimposed normal curve
+hist(samplesdf2$mean, probability=TRUE, ylim=c(0,6.5), main = "Histogram of mean, n=1000", xlab="Mean")
+lines(density(samplesdf2$mean), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(samplesdf2$mean), sd=sd(samplesdf2$mean)), lwd=2, col="blue", add=TRUE)
+
+summary(samplesdf2)
+("The shapes of the min and max histograms of n=1000 are less accurate to the 
+superimposed normal lines compared to the n=16 histograms. The mean and median histograms
+  are still very accurate to the normal line. Intuitively, this is because if there are
+  more samples in an entry, the likelihood of an extremely small or extremely large
+  value increases, which causes the min and max distributions to become skewed. Min 
+  and max are highly influenced by extreme outliers in the data.")
+```
+```{r}
+# #2 - Repeat steps of problem # for a skewed parent distribution such as a lognormal or a gamma
+# distribution. Explain how would choose the parameters of these distributions so that they
+# can be compared to the results from normal distribution.
+library(dplyr)
+cat("Choose gamma distribution for the repeated samples. As we recall from 
+    Worksheet3, the gamma distribution has the parameters: Shape and Scale, which
+    can be calculated easily with the formulas mean=k*theta, and variance=k*theta^2,
+    we know that sigma is 2 and mean is 10, therefore variance = 4. So 10 = k * theta,
+    theta = 10/k. 4 = k * (10/k)^2 = k * (100/k^2) = 100/k, thus k = 100/4 = 25.
+    And theta = 10/25 = .4 and k=shape and theta=scale")
+
+shape = 25
+scale = 0.4
+sample_count <- 10000
+sample_size <- 16
+
+gammadf <- as.data.frame(matrix(ncol=4, nrow=sample_count))
+colnames(gammadf) <- c("min", "median", "max", "mean") #name columns
+
+#Generate 10000 entries into the dataframe, of size 16 random normal samples
+#and calculate for each sample, min median max mean
+set.seed(1)
+for(i in 1:sample_count){
+  sample <- rgamma(sample_size, shape=shape, scale=scale)
+  gammadf[i,] = c(min(sample), median(sample), max(sample), mean(sample)) 
+}
+glimpse(gammadf)
+
+# (b) Summarize the sampling distributions and plot histograms.
+summary(gammadf) #summarize the sampling distributions for each column (statistics)
+
+#Histogram of min, curve and superimposed normal curve
+hist(gammadf$min, probability=TRUE, main = "Histogram of gamma minimum, n=16", xlab="Min")
+lines(density(gammadf$min), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(gammadf$min), sd=sd(gammadf$min)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of median, curve and superimposed normal curve
+hist(gammadf$median, probability=TRUE, ylim = c(0,.7), main = "Histogram of gamma median, n=16",xlab="Median")
+lines(density(gammadf$median), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(gammadf$median), sd=sd(gammadf$median)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of max, curve and superimposed normal curve
+hist(gammadf$max, probability=TRUE, main = "Histogram of gamma max, n=16", xlab="Max")
+lines(density(gammadf$max), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(gammadf$max), sd=sd(gammadf$max)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of mean, curve and superimposed normal curve
+hist(gammadf$mean, probability=TRUE, main = "Histogram of gamma mean, n=16", xlab="Mean")
+lines(density(gammadf$mean), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(gammadf$mean), sd=sd(gammadf$mean)), lwd=2, col="blue", add=TRUE)
+
+# (c) Compare the summary statistics and comment on the shapes of the histogram
+cat("The summary statistics were already calculated in (b), refer to 2-b.
+    The shapes of the mean and median histograms are very close to normal, as seen 
+    from the red lines which are the actual density lines of the histograms, and 
+    the blue lines which  are the superimposed normal lines from the dataframe. 
+    The histograms of max and min, are not perfectly curved and are a bit skewed, 
+    but still approximately normal.")
+
+sample_size <- 1000
+gammadf2 <- as.data.frame(matrix(ncol=4, nrow=sample_count))
+colnames(gammadf2) <- c("min", "median", "max", "mean") #name columns
+
+#Generate 10000 entries into the dataframe, of size 16 random normal samples
+#and calculate for each sample, min median max mean
+set.seed(1)
+for(i in 1:sample_count){
+  sample <- rgamma(sample_size, shape=shape, scale=scale)
+  gammadf2[i,] = c(min(sample), median(sample), max(sample), mean(sample)) 
+}
+glimpse(gammadf2)
+
+#Histogram of min, curve and superimposed normal curve
+hist(gammadf2$min, probability=TRUE, main = "Histogram of gamma minimum, n=1000", xlab="Min")
+lines(density(gammadf2$min), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(gammadf2$min), sd=sd(gammadf2$min)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of median, curve and superimposed normal curve
+hist(gammadf2$median, probability=TRUE, ylim = c(0,6.5), main = "Histogram of gamma median, n=1000",xlab="Median")
+lines(density(gammadf2$median), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(gammadf2$median), sd=sd(gammadf2$median)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of max, curve and superimposed normal curve
+hist(gammadf2$max, probability=TRUE, main = "Histogram of gamma max, n=1000", xlab="Max")
+lines(density(gammadf2$max), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(gammadf2$max), sd=sd(gammadf2$max)), lwd=2, col="blue", add=TRUE)
+
+#Histogram of mean, curve and superimposed normal curve
+hist(gammadf2$mean, probability=TRUE, main = "Histogram of gamma mean, n=1000", xlab="Mean",
+     ylim=c(0,6.5))
+lines(density(gammadf2$mean), col = 2, lwd = 2)
+curve(dnorm(x, mean=mean(gammadf2$mean), sd=sd(gammadf2$mean)), lwd=2, col="blue", add=TRUE)
+
+summary(gammadf2)
+# (c) Compare the summary statistics and comment on the shapes of the histogram
+cat("The shapes of the min and max histograms of n=1000 are less accurate to the 
+superimposed normal lines compared to the n=16 histograms. The mean and median histograms
+are still very accurate to the normal line. Intuitively, again, this is because of
+the susceptibility of min and max to extreme outliers.")
+```

@@ -1,0 +1,148 @@
+---
+title: "Worksheet7"
+author: "STAT414"
+date: "2024-11-02"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# 1. Consider the Introductory Example 1 of the Module07 slides.
+# (a) Test the Engineer’s hypothesis. Clearly show all the seven steps of the testing of
+# hypothesis problem.
+
+iron <- c(170, 167, 174, 179, 179, 156, 163, 156, 187, 156,
+183, 179, 174, 179, 170, 156, 187, 179, 183, 174, 187, 167, 159, 170, 179)
+
+sample_mean <- mean(iron)
+sample_sd <- sd(iron)
+n <- length(iron)
+n
+
+cat("
+1. Parameter of interest is the mean of the Brinell hardness of the iron
+2-3. H0: mu = 170
+   HA: mu > 170
+'the mean Brinell hardness of all such ductile iron pieces is greater than 170'
+Choose alpha = .05
+Use standard t-test because the sample size is less than 30
+")
+
+#4. test statistic for 1-sided t-test: xbar - mu0 / (s/sqrt(n))
+test_statistic <- (sample_mean - 170) / (sample_sd / sqrt(n))
+cat("4. Test statistic of data:", test_statistic)
+
+#5-6 p-value of test statistic
+pvalue <- pt(test_statistic, n-1, lower.tail = FALSE)
+rejection <- qt(1 - .05, n-1)
+cat("5. The rejection region for an alpha of 0.05 is when the test statistic >", rejection)
+cat("6. P-value of test statistic:", pvalue)
+
+#Conclusion
+cat("7. The p-value of the data is calculated to be", pvalue, "> .05, therefore we
+    fail to reject the null hypothesis, and conclude that the mean Brinell hardness
+    is equal to 170")
+
+# (b) Suppose we decided to use a different test: Reject H0 when Xbar > 174. (See page
+# 14 of the slide.). Compute the P(Type I Error) (= alpha for this test.)
+
+# 1 - P(Xbar < 174)
+#pnorm = probability that Xbar is less than 174 if the population mean is 170.
+alpha <- 1 - pnorm(174,170,sample_sd/sqrt(n)) 
+cat("Probability of a Type I Error for rejection rule Xbar > 174:", alpha)
+
+# (c) Compute P(Type II Error) for this test, when mu = 172. (That is, compute Beta(172).
+
+#pnorm = probability that Xbar is less than or equal to 174 if the true mean is 172
+beta <- pnorm(174,172,sample_sd/sqrt(n))
+cat("The probability of type 2 error for rejection rule Xbar > 174, when mu=172:", beta)
+
+# (d) Compute the alpha and Beta(172) for the test used in part (a).
+
+cat("The alpha of part a was defined to be .05, therefore the probability of a 
+    Type I error is simply 0.05.")
+
+rejection_mean <- 170 + rejection * (sample_sd/sqrt(n))
+rejection_mean
+A_beta <- pnorm(rejection_mean,172,sample_sd/sqrt(n))
+cat("The probability of type 2 error for rejection rule Xbar >",rejection_mean,"when mu=172:", A_beta)
+
+# (e) Plot the power curves of the two testing procedures and compare.
+
+#Power curve is plotted by plotting the values of Power(mu) vs various values of mu.
+mu <- seq(150,190,0.1)
+plot(mu, 1 - pnorm(rejection_mean, mu, sample_sd/sqrt(n)),
+     type = "l", col = "red",
+     xlab = "mu", ylab = "Power",
+     main = "Power Curves for 2 procedures")
+lines(mu, 1 - pnorm(174, mu, sample_sd/(sqrt(n))),
+      col = "blue")
+legend("topleft", legend = c("Rule: Xbar > rejection_mean", "Rule: Xbar > 174"),
+       col = c("red", "blue"), lwd = 2)
+
+cat("Red is better because the power is higher at more instances of mu.")
+```
+
+```{r}
+# 2. Consider the Introductory Example 2 of the Module07 slides.
+# (a) Test the Biologist’s hypothesis. Clearly show all the seven steps of the testing of
+# hypothesis problem.
+
+heights <- c(11.5, 11.8, 15.7, 16.1, 14.1, 10.5, 15.2, 19.0, 12.8, 12.4, 19.2, 13.5,
+16.5, 13.5, 14.4, 16.7, 10.9, 13.0,15.1, 17.1, 13.3, 12.4, 8.50, 14.3,
+12.9, 11.1, 15.0, 13.3, 15.8, 13.5,9.30, 12.2, 10.3)
+sample_mean <- mean(heights)
+sample_sd <- sd(heights)
+n <- length(heights)
+mu <- 15.7
+
+cat("
+1. Parameter of interest is the mean height of the sunflower seedlings.
+2-3. H0: mu = 15.7
+   HA: mu < 15.7
+Choose alpha = .05
+Use standard t-test
+")
+
+#4. test statistic for 1-sided t-test: xbar - mu0 / (s/sqrt(n))
+test_statistic <- (sample_mean - mu) / (sample_sd / sqrt(n))
+cat("4. Test statistic:", test_statistic)
+
+# Step 5-6: p-value and rejection region
+p_value <- pt(test_statistic, df = n - 1)
+rejection <- qt(0.05, df = n - 1)
+cat("5. The rejection region for alpha = 0.05 is when the test statistic <", rejection)
+cat("6. P-value of test statistic:", p_value)
+
+cat("7. the pvalue of 3.174244e-05 is much less than the chosen alpha of .05, therefore
+    there is enoughs supporting evidence to reject the null hypothesis and suggest
+    that the mean height of all sunflower seeds is less than 15.7cm")
+
+# (b) Plot the power curve.
+mus <- seq(10, 20, by = 0.1)
+rejection_mean <-  mu + rejection * (sample_sd/sqrt(n))
+rejection_mean_20 <-  mu + rejection * sample_sd / sqrt(20)
+rejection_mean_40 <-  mu + rejection * sample_sd / sqrt(40)
+
+plot(mus, 1 - pnorm(rejection_mean, mus, sample_sd/sqrt(n)),
+     type = "l", col = "red",
+     xlab = "mu", ylab = "Power",
+     main = "Power Curve")
+lines(mus, 1 - pnorm(rejection_mean_20, mus, sample_sd / sqrt(20)),
+      col="blue")
+lines(mus, 1 - pnorm(rejection_mean_40, mus, sample_sd / sqrt(40)),
+      col="green")
+legend("topleft", legend = c("n=33", "n=20", "n=40"),
+       col = c("red", "blue","green"), lwd = 2)
+# (c) Compare the above power curve to the power curves one would get for sample
+# sizes 20 or 40.
+
+cat("Green is the best, with the steepest slope that reaches max power the fastest.
+    Which is a sample size = 40. has the highest power across the range of true 
+    means, higher sample size is better for power.")
+
+
+```
